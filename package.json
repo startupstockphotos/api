@@ -4,7 +4,7 @@
   "description": "API for startupstockphotos.com",
   "scripts": {
     "start": "micro",
-    "dev": "micro-dev"
+    "dev": "micro-dev -p 3001"
   },
   "repository": {
     "type": "git",
@@ -14,7 +14,9 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "contentful": "^5.0.5",
+    "fuse.js": "^3.2.0",
     "micro": "^9.1.0",
+    "micro-cors": "^0.1.0",
     "microrouter": "^3.0.0",
     "now-env": "^3.0.3"
   },
