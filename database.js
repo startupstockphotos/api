@@ -6,7 +6,7 @@ module.exports = [
       `desk`,
       `computer`,
       `office`,
-    ]
+    ],
   },
   {
     id: `2`,
@@ -17,7 +17,7 @@ module.exports = [
       `thingsorganizedneatly`,
       `notebook`,
       `supplies`,
-    ]
+    ],
   },
   {
     id: `3`,
@@ -27,7 +27,7 @@ module.exports = [
       `macbook`,
       `conference`,
       `people`,
-    ]
+    ],
   },
   {
     id: `4`,
@@ -39,7 +39,7 @@ module.exports = [
       `windows`,
       `mac`,
       `people`,
-    ]
+    ],
   },
   {
     id: `5`,
@@ -50,7 +50,7 @@ module.exports = [
       `windows`,
       `conference`,
       `people`,
-    ]
+    ],
   },
   {
     id: `6`,
@@ -62,7 +62,7 @@ module.exports = [
       `conference`,
       `meeting`,
       `people`,
-    ]
+    ],
   },
   {
     id: `7`,
@@ -73,7 +73,7 @@ module.exports = [
       `windows`,
       `hackathon`,
       `people`,
-    ]
+    ],
   },
   {
     id: `8`,
@@ -84,7 +84,7 @@ module.exports = [
       `windows`,
       `conference`,
       `people`,
-    ]
+    ],
   },
   {
     id: `9`,
@@ -93,6 +93,6 @@ module.exports = [
       `iphone`,
       `conference`,
       `people`,
-    ]
+    ],
   },
 ]
