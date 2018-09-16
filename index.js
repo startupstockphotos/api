@@ -1,60 +1,87 @@
-require('now-env')
-
-const { send, json } = require('micro')
-const { router, get, post } = require('microrouter')
-const cors = require('micro-cors')()
+const url = require('url')
+const qs = require('qs')
 const Fuse = require('fuse.js')
-const api = require('./api.js')
-const { normalize } = require('./util.js')
+const api = require('router')()
+const database = require('./database.js')
 
-let cache
-let search
-let paginateBy = 100
-
-async function getPhotos (force) {
-  if (!cache || force) {
-    cache = null
-    cache = await api.getEntries({ content_type: 'photo', limit: 999 })
-      .then(({ items }) => normalize(items))
-      .catch(e => {
-        console.log('Initial photos fetch failed')
-      })
+const db = database.map(({ id, tags, description }) => ({
+  id,
+  tags,
+  description,
+  images: {
+    placeholder: `https://api.startupphotos.com/static/processed/${id}/placeholder.jpg`,
+    display: `https://api.startupphotos.com/static/processed/${id}/display.jpg`,
+    raw: `https://api.startupphotos.com/static/raw/${id}.jpg`
   }
-  return cache
-}
+}))
 
-function createSearch () {
-  search = null
-  return new Fuse(cache, {
-    keys: ['title', 'descriptors', 'description']
-  })
-}
+const index = new Fuse(db, {
+  keys: [
+    'tags',
+    'description'
+  ]
+})
 
-module.exports = async (req, res) => {
-  cache = await getPhotos()
-  search = createSearch()
+api.get('/photos', (req, res) => {
+  const args = qs.parse(url.parse(req.url) || '')
 
-  return router(
-    get('/photos', cors((req, res) => {
-      const q = req.query.q
-      const page = req.query.page || 0
-      const offset = page > 0 ? paginateBy * (page - 1) : 0
-      const length = page > 1 ? paginateBy * page : paginateBy
+  const limit = args.limit ? parseInt(args.limit) : 18
+  const page = args.page ? parseInt(args.page) : null
+  const offset = args.offset ? parseInt(args.offset) : null
 
-      if (q) {
-        console.log('query')
-        const results = search.search(q)
-        const paginated = results.slice(offset, length)
-        send(res, 200, paginated)
-      } else {
-        console.log('no query')
-        const paginated = cache.slice(offset, length)
-        send(res, 200, paginated)
-      }
-    })),
-    get('/photos/:id', cors((req, res) => {
-      const match = cache.filter(photo => photo.id === req.params.id)[0]
-      send(res, 200, match)
+  let results
+
+  if (page !== null || offset !== null) {
+    const start = offset || (limit * page || 0)
+    const end = ((page || 0) + 1) * limit
+    results = db.slice(start, end)
+  } else {
+    results = db.slice(0, limit)
+  }
+
+  res.setHeader('Content-Type', 'application/json')
+  res.end(JSON.stringify(results))
+})
+
+api.get('/photos/:id', (req, res) => {
+  const { id } = req.params
+  const photo = db.filter(i => i.id === id)[0]
+
+  if (photo) {
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(photo))
+  } else {
+    res.statusCode = 404
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify({
+      errors: [
+        `photo ${id} does not exist`
+      ]
     }))
-  )(req, res)
-}
+  }
+})
+
+api.get('/search/:query', (req, res) => {
+  const { query } = req.params
+
+  res.setHeader('Content-Type', 'application/json')
+  res.end(JSON.stringify(index.search(query)))
+})
+
+require('connect')()
+  .use(require('compression')())
+  .use('/static/raw', require('serve-static')('raw', {
+    setHeaders (res, path) {
+      res.setHeader('Content-Disposition', require('content-disposition')(path))
+    }
+  }))
+  .use('/static/processed', require('serve-static')('static', {
+    maxAge: '1d'
+  }))
+  .use('/api/v1', api)
+  .use((req, res) => {
+    res.end(JSON.stringify({
+      message: 'Welcome to the Startup Stock Photos API'
+    }))
+  })
+  .listen(3001)
