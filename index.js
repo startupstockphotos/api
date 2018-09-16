@@ -6,7 +6,7 @@ const database = require('./database.js')
 
 const { NOW } = process.env
 
-const origin = NOW ? 'https://api.startupphotos.com' : 'localhost:3001'
+const origin = NOW ? 'https://api.startupphotos.com' : 'http://localhost:3001'
 
 const db = database.map(({ id, tags, description }) => ({
   id,
@@ -43,7 +43,6 @@ api.get('/photos', (req, res) => {
     results = db.slice(0, limit)
   }
 
-  res.setHeader('Content-Type', 'application/json')
   res.end(JSON.stringify(results))
 })
 
@@ -52,11 +51,9 @@ api.get('/photos/:id', (req, res) => {
   const photo = db.filter(i => i.id === id)[0]
 
   if (photo) {
-    res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify(photo))
   } else {
     res.statusCode = 404
-    res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify({
       errors: [
         `photo ${id} does not exist`
@@ -68,7 +65,6 @@ api.get('/photos/:id', (req, res) => {
 api.get('/search/:query', (req, res) => {
   const { query } = req.params
 
-  res.setHeader('Content-Type', 'application/json')
   res.end(JSON.stringify(index.search(query)))
 })
 
@@ -82,6 +78,10 @@ require('connect')()
   .use('/static/processed', require('serve-static')('static', {
     maxAge: '1d'
   }))
+  .use((req, res, next) => {
+    res.setHeader('Content-Type', 'application/json')
+    next()
+  })
   .use('/api/v1', api)
   .use((req, res) => {
     res.end(JSON.stringify({
