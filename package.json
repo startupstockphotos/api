@@ -1,15 +1,13 @@
 {
-  "name": "new-api",
-  "version": "1.0.0",
-  "description": "",
+  "name": "ssp-api",
+  "version": "0.0.1",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
-    "dev": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "estrattonbailey",
+  "license": "MIT",
   "devDependencies": {
     "fs-extra": "^7.0.0",
     "jimp": "^0.4.0",

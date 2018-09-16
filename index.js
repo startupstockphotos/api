@@ -4,14 +4,18 @@ const Fuse = require('fuse.js')
 const api = require('router')()
 const database = require('./database.js')
 
+const { NOW } = process.env
+
+const origin = NOW ? 'https://api.startupphotos.com' : 'localhost:3001'
+
 const db = database.map(({ id, tags, description }) => ({
   id,
   tags,
   description,
   images: {
-    placeholder: `https://api.startupphotos.com/static/processed/${id}/placeholder.jpg`,
-    display: `https://api.startupphotos.com/static/processed/${id}/display.jpg`,
-    raw: `https://api.startupphotos.com/static/raw/${id}.jpg`
+    placeholder: `${origin}/static/processed/${id}/placeholder.jpg`,
+    display: `${origin}/static/processed/${id}/display.jpg`,
+    raw: `${origin}/static/raw/${id}.jpg`
   }
 }))
 
