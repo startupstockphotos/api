@@ -6,7 +6,7 @@ const database = require('./database.js')
 
 const { NOW } = process.env
 
-const origin = NOW ? 'https://api.startupphotos.com' : 'http://localhost:3001'
+const origin = NOW ? 'https://ssp-api.now.sh' : 'http://localhost:3001'
 
 const db = database.map(({ id, tags, description }) => ({
   id,
@@ -29,7 +29,7 @@ const index = new Fuse(db, {
 api.get('/photos', (req, res) => {
   const args = qs.parse(url.parse(req.url) || '')
 
-  const limit = args.limit ? parseInt(args.limit) : 18
+  const limit = args.limit ? parseInt(args.limit) : 3
   const page = args.page ? parseInt(args.page) : null
   const offset = args.offset ? parseInt(args.offset) : null
 
@@ -80,6 +80,7 @@ require('connect')()
   }))
   .use((req, res, next) => {
     res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Access-Control-Allow-Origin', '*')
     next()
   })
   .use('/api/v1', api)
