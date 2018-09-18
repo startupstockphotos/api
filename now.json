@@ -2,5 +2,11 @@
   "name": "api",
   "alias": [
     "ssp-api"
+  ],
+  "files": [
+    "index.js",
+    "database.js",
+    "static",
+    "raw"
   ]
 }
