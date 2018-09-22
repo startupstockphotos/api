@@ -6,16 +6,16 @@ const database = require('./database.js')
 
 const { NOW } = process.env
 
-const origin = NOW ? 'https://ssp-api.now.sh' : 'http://localhost:3001'
+const origin = NOW ? 'https://ssp-static.now.sh' : 'http://localhost:3002'
 
 const db = database.map(({ id, tags, description }) => ({
   id,
   tags,
   description,
   images: {
-    placeholder: `${origin}/static/processed/${id}/placeholder.jpg`,
-    display: `${origin}/static/processed/${id}/display.jpg`,
-    raw: `${origin}/static/raw/${id}.jpg`
+    placeholder: `${origin}/photos/processed/${id}/placeholder.jpg`,
+    display: `${origin}/photos/processed/${id}/display.jpg`,
+    raw: `${origin}/photos/raw/${id}.jpg`
   }
 }))
 
@@ -70,14 +70,6 @@ api.get('/search/:query', (req, res) => {
 
 require('connect')()
   .use(require('compression')())
-  .use('/static/raw', require('serve-static')('raw', {
-    setHeaders (res, path) {
-      res.setHeader('Content-Disposition', require('content-disposition')(path))
-    }
-  }))
-  .use('/static/processed', require('serve-static')('static', {
-    maxAge: '1d'
-  }))
   .use((req, res, next) => {
     res.setHeader('Content-Type', 'application/json')
     res.setHeader('Access-Control-Allow-Origin', '*')
