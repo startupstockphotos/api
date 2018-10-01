@@ -9,6 +9,24 @@ const { NOW } = process.env
 
 const origin = NOW ? 'https://ssp-static.now.sh' : 'http://localhost:3002'
 
+function paginate (arr, query) {
+  const limit = query.limit ? parseInt(query.limit) : 24
+  const page = query.page ? parseInt(query.page) : null
+  const offset = query.offset ? parseInt(query.offset) : null
+
+  let results
+
+  if (page !== null || offset !== null) {
+    const start = offset || (limit * page || 0)
+    const end = ((page || 0) + 1) * limit
+    results = arr.slice(start, end)
+  } else {
+    results = arr.slice(0, limit)
+  }
+
+  return results
+}
+
 Promise.all(
   database.map(({ id, tags, description }) => ({
     id,
@@ -37,26 +55,41 @@ Promise.all(
     ]
   })
 
+  /**
+   * Indexing
+   */
   api.get('/photos', (req, res) => {
-    const args = qs.parse(url.parse(req.url) || '')
+    const args = qs.parse(url.parse(req.url).query || '')
+    const photos = paginate(db, args)
 
-    const limit = args.limit ? parseInt(args.limit) : 24
-    const page = args.page ? parseInt(args.page) : null
-    const offset = args.offset ? parseInt(args.offset) : null
-
-    let results
-
-    if (page !== null || offset !== null) {
-      const start = offset || (limit * page || 0)
-      const end = ((page || 0) + 1) * limit
-      results = db.slice(start, end)
-    } else {
-      results = db.slice(0, limit)
-    }
-
-    res.end(JSON.stringify(results))
+    res.end(JSON.stringify({
+      hits: db.length,
+      pages: Math.ceil(db.length / (args.limit || 24)),
+      photos
+    }))
   })
 
+  /**
+   * Search
+   */
+  api.get('/search/:query', (req, res) => {
+    const { query } = req.params
+
+    const hits = index.search(query)
+    const args = qs.parse(url.parse(req.url).query || '')
+    const photos = paginate(hits, args)
+
+    res.end(JSON.stringify({
+      query,
+      hits: hits.length,
+      pages: Math.ceil(hits.length / (args.limit || 24)),
+      photos
+    }))
+  })
+
+  /**
+   * Single photo
+   */
   api.get('/photos/:id', (req, res) => {
     const { id } = req.params
     const photo = db.filter(i => i.id === id)[0]
@@ -71,12 +104,6 @@ Promise.all(
         ]
       }))
     }
-  })
-
-  api.get('/search/:query', (req, res) => {
-    const { query } = req.params
-
-    res.end(JSON.stringify(index.search(query)))
   })
 
   require('connect')()
